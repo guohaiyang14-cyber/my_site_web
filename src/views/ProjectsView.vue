@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useAsync } from '../composables/useAsync'
 import { projectsApi } from '../api/projects'
@@ -9,7 +9,9 @@ import EmptyState from '../components/EmptyState.vue'
 const { data, loading, error, run } = useAsync(() => projectsApi.list())
 const projects = computed(() => data.value?.data ?? [])
 
-onMounted(run)
+onMounted(() => {
+  void run()
+})
 </script>
 
 <template>

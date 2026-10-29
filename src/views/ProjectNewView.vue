@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAsync } from '../composables/useAsync'
-import { projectsApi } from '../api/projects'
+import { projectsApi, type ProjectCreatePayload } from '../api/projects'
 import ErrorState from '../components/ErrorState.vue'
 
 const router = useRouter()
@@ -11,16 +11,18 @@ const form = ref({
   slug: '',
   title: '',
   summary: '',
-  techStack: '', // 逗号分隔，提交时转数组
+  techStack: '',
   repoUrl: '',
   demoUrl: '',
   featured: false,
 })
 
-const { loading, error, run } = useAsync(payload => projectsApi.create(payload))
+const { loading, error, run } = useAsync((payload: ProjectCreatePayload) =>
+  projectsApi.create(payload)
+)
 
-async function onSubmit() {
-  await run({
+async function onSubmit(): Promise<void> {
+  const result = await run({
     slug: form.value.slug.trim(),
     title: form.value.title.trim(),
     summary: form.value.summary.trim(),
@@ -33,7 +35,9 @@ async function onSubmit() {
     featured: form.value.featured,
   })
 
-  if (!error.value) router.push('/') // 成功才跳，失败留在原地显示错误
+  if (result.ok) {
+    router.push('/')
+  }
 }
 </script>
 
