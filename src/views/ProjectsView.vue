@@ -1,15 +1,15 @@
 <script setup>
-import { computed, onMounted } from 'vue';
-import { useAsync } from '../composables/useAsync';
-import { projectsApi } from '../api/projects';
-import LoadingState from '../components/LoadingState.vue';
-import ErrorState from '../components/ErrorState.vue';
-import EmptyState from '../components/EmptyState.vue';
+import { computed, onMounted } from 'vue'
+import { useAsync } from '../composables/useAsync'
+import { projectsApi } from '../api/projects'
+import LoadingState from '../components/LoadingState.vue'
+import ErrorState from '../components/ErrorState.vue'
+import EmptyState from '../components/EmptyState.vue'
 
-const { data, loading, error, run } = useAsync(() => projectsApi.list());
-const projects = computed(() => data.value?.data ?? []);
+const { data, loading, error, run } = useAsync(() => projectsApi.list())
+const projects = computed(() => data.value?.data ?? [])
 
-onMounted(run);
+onMounted(run)
 </script>
 
 <template>
