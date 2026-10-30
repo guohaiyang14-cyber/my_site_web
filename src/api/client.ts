@@ -37,6 +37,10 @@ interface RequestOptions extends Omit<RequestInit, 'headers'> {
   headers?: HeadersInit
 }
 
+function getToken() {
+  return localStorage.getItem('auth_token')
+}
+
 function defaultOnError(err: ApiError): void {
   if (err.status === 0) {
     toast('无法连接后端，请检查服务是否启动', 'error')
@@ -59,6 +63,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
   if (typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
+  }
+
+  const token = getToken()
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
   }
 
   let res: Response
@@ -89,6 +98,18 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       message: e.message || `HTTP ${res.status}`,
       details: e.details || [],
     })
+
+    if (res.status === 401) {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
+      // 触发全局事件，通知路由跳转（避免直接 import router 导致的循环依赖）
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+
+      if (!window.location.pathname.startsWith('/login')) {
+        toast('登录已失效，请重新登录', 'warning')
+      }
+    }
+
     if (!silent) onError(err)
     throw err
   }

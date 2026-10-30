@@ -10,6 +10,7 @@ import EmptyState from '../components/EmptyState.vue'
 const router = useRouter()
 const { data, loading, error, run } = useAsync(() => projectsApi.list())
 const projects = computed(() => data.value?.data ?? [])
+const hasToken = localStorage.getItem('auth_token') ?? false
 
 onMounted(run)
 
@@ -24,6 +25,13 @@ async function handleDelete(slug) {
     // 全局 toast 已经弹了错误（因为没加 silent），这里不用额外处理
   }
 }
+
+// 退出登录
+function handleLoginOut() {
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('auth_user')
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -31,6 +39,7 @@ async function handleDelete(slug) {
     <header class="page-header">
       <h1>作品集</h1>
       <RouterLink to="/new" class="btn">+ 新增作品</RouterLink>
+      <button v-if="hasToken" @click="handleLoginOut">退出登录</button>
     </header>
 
     <LoadingState v-if="loading" />
