@@ -22,8 +22,16 @@ export interface ProjectCreatePayload {
   featured: boolean
 }
 
+export interface PaginationMeta {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+}
+
 export interface ProjectsListResponse {
   data: Project[]
+  pagination?: PaginationMeta
 }
 
 export interface ProjectResponse {
@@ -35,9 +43,16 @@ type ApiRequestOptions = Omit<RequestInit, 'body'> & { silent?: boolean }
 
 export const projectsApi = {
   // 1. 获取列表
-  list: async ({ featured }: { featured?: boolean } = {}): Promise<ProjectsListResponse> => {
-    const qs = featured === undefined ? '' : `?featured=${featured}`
-    return request<ProjectsListResponse>(`/api/projects${qs}`)
+  list: async (
+    params: { featured?: boolean; page?: number; pageSize?: number } = {}
+  ): Promise<ProjectsListResponse> => {
+    const query = new URLSearchParams()
+    if (params.featured !== undefined) query.append('featured', String(params.featured))
+    if (params.page) query.append('page', String(params.page))
+    if (params.pageSize) query.append('pageSize', String(params.pageSize))
+
+    const qs = query.toString()
+    return request<ProjectsListResponse>(`/api/projects${qs ? `?${qs}` : ''}`)
   },
 
   // 2. 获取单个详情（新增，用于编辑页回显）
