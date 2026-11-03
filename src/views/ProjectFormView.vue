@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { useAsync } from '../composables/useAsync'
 import { projectsApi, type ProjectCreatePayload } from '../api/projects'
@@ -10,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const slug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug : ''))
 const isEdit = computed(() => !!slug.value)
+const formRef = ref<FormInstance>()
 
 const emptyForm: ProjectCreatePayload = {
   slug: '',
@@ -22,11 +24,23 @@ const emptyForm: ProjectCreatePayload = {
 }
 
 const form = ref<ProjectCreatePayload>({ ...emptyForm })
-
-// 为了表单里输入方便，用一个字符串变量绑定 techStack
 const techStackInput = ref('')
+const rules = reactive<FormRules>({
+  slug: [
+    { required: true, message: '请输入作品 slug', trigger: 'blur' },
+    {
+      pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      message: 'Slug 只能包含小写字母、数字和中划线',
+      trigger: 'blur',
+    },
+  ],
+  title: [{ required: true, message: '请输入作品标题', trigger: 'blur' }],
+  summary: [
+    { required: true, message: '请输入作品简介', trigger: 'blur' },
+    { min: 10, max: 200, message: '简介长度应在 10~200 个字符之间', trigger: 'blur' },
+  ],
+})
 
-// 1. 详情请求 (编辑模式)
 const {
   data: detailData,
   loading: loadingDetail,
@@ -34,7 +48,6 @@ const {
   run: fetchDetail,
 } = useAsync(() => projectsApi.get(slug.value))
 
-// 2. 表单提交请求
 const {
   loading: submitting,
   error: submitError,
@@ -44,7 +57,6 @@ const {
   return projectsApi.create(payload)
 })
 
-// 3. 监听路由变化，新增/编辑时分别重置并拉取数据
 watch(
   slug,
   currentSlug => {
@@ -59,7 +71,6 @@ watch(
   { immediate: true }
 )
 
-// 4. 监听详情返回，回显数据
 watch(detailData, newVal => {
   if (newVal && newVal.data) {
     const p = newVal.data
@@ -72,14 +83,14 @@ watch(detailData, newVal => {
       demoUrl: p.demoUrl || null,
       featured: p.featured,
     }
-    // 将数组转成逗号分隔的字符串供用户编辑
     techStackInput.value = p.techStack.join(', ')
   }
 })
 
-// 5. 提交逻辑
 async function onSubmit() {
-  // 把用户输入的字符串重新转为数组
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
+
   form.value.techStack = techStackInput.value
     .split(',')
     .map(s => s.trim())
@@ -88,39 +99,74 @@ async function onSubmit() {
   const { ok } = await submitForm(form.value)
 
   if (ok) {
-    router.push('/') // 只有成功才跳转
+    router.push('/')
   }
 }
 </script>
 
 <template>
-  <div>
+  <div class="page-shell">
     <header class="page-header">
-      <h1>{{ isEdit ? '编辑作品' : '新增作品' }}</h1>
-      <RouterLink to="/">← 返回</RouterLink>
+      <div>
+        <p class="eyebrow">内容管理</p>
+        <h1>{{ isEdit ? '编辑作品' : '新增作品' }}</h1>
+      </div>
+      <RouterLink to="/" class="back-link">← 返回列表</RouterLink>
     </header>
 
-    <LoadingState v-if="loadingDetail" />
-    <div v-else>
-      <!-- 展示详情加载的错误（比如 slug 不存在） -->
-      <ErrorState v-if="detailError" :error="detailError" />
+    <el-card shadow="hover" class="panel-card">
+      <LoadingState v-if="loadingDetail" />
 
-      <!-- 展示提交时的校验错误 -->
-      <ErrorState v-if="submitError" :error="submitError" />
+      <div v-else>
+        <ErrorState v-if="detailError" :error="detailError" />
+        <ErrorState v-if="submitError" :error="submitError" />
 
-      <form @submit.prevent="onSubmit" class="form" novalidate>
-        <label>Slug<input v-model="form.slug" placeholder="my-project" /></label>
-        <label>标题<input v-model="form.title" /></label>
-        <label>简介<textarea v-model="form.summary" rows="3" /></label>
-        <label>技术栈<input v-model="techStackInput" placeholder="Vue, Express" /></label>
-        <label>仓库地址<input v-model="form.repoUrl" /></label>
-        <label>演示地址<input v-model="form.demoUrl" /></label>
-        <label class="checkbox"><input type="checkbox" v-model="form.featured" /> 精选作品</label>
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="rules"
+          class="project-form"
+          label-position="top"
+          @submit.prevent="onSubmit"
+        >
+          <div class="form-grid">
+            <el-form-item prop="slug" label="Slug">
+              <el-input v-model="form.slug" placeholder="my-project" />
+            </el-form-item>
 
-        <button type="submit" :disabled="submitting">
-          {{ submitting ? '提交中…' : '保存' }}
-        </button>
-      </form>
-    </div>
+            <el-form-item prop="title" label="标题">
+              <el-input v-model="form.title" />
+            </el-form-item>
+
+            <el-form-item prop="summary" label="简介">
+              <el-input v-model="form.summary" type="textarea" :rows="4" />
+            </el-form-item>
+
+            <el-form-item label="技术栈">
+              <el-input v-model="techStackInput" placeholder="Vue, Express" />
+            </el-form-item>
+
+            <el-form-item label="仓库地址">
+              <el-input v-model="form.repoUrl" placeholder="https://github.com/..." />
+            </el-form-item>
+
+            <el-form-item label="演示地址">
+              <el-input v-model="form.demoUrl" placeholder="https://example.com" />
+            </el-form-item>
+
+            <el-form-item label="精选作品">
+              <el-switch v-model="form.featured" />
+            </el-form-item>
+          </div>
+
+          <div class="submit-row">
+            <el-button @click="router.push('/')">取消</el-button>
+            <el-button type="primary" native-type="submit" :loading="submitting">
+              {{ submitting ? '提交中...' : '保存' }}
+            </el-button>
+          </div>
+        </el-form>
+      </div>
+    </el-card>
   </div>
 </template>

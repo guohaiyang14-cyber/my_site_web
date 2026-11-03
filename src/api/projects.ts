@@ -52,12 +52,12 @@ export const projectsApi = {
     if (params.pageSize) query.append('pageSize', String(params.pageSize))
 
     const qs = query.toString()
-    return request<ProjectsListResponse>(`/api/projects${qs ? `?${qs}` : ''}`)
+    return request<ProjectsListResponse>(`/api/projects${qs ? `?${qs}` : ''}`, { silent: true })
   },
 
   // 2. 获取单个详情（新增，用于编辑页回显）
   get: async (slug: string): Promise<ProjectResponse> => {
-    return request<ProjectResponse>(`/api/projects/${slug}`)
+    return request<ProjectResponse>(`/api/projects/${slug}`, { silent: true })
   },
 
   // 3. 新增
@@ -68,7 +68,7 @@ export const projectsApi = {
     return request<ProjectResponse>('/api/projects', {
       method: 'POST',
       body: JSON.stringify(payload),
-      silent: true, // 统一改为 true，交给表单内联展示 details
+      silent: true,
       ...opts,
     })
   },
@@ -76,19 +76,19 @@ export const projectsApi = {
   // 4. 更新
   update: async (
     slug: string,
-    payload: Partial<ProjectCreatePayload>, // 更新一般允许部分传参
+    payload: Partial<ProjectCreatePayload>,
     opts: ApiRequestOptions = {}
   ): Promise<ProjectResponse> => {
     return request<ProjectResponse>(`/api/projects/${slug}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
-      silent: true, // 统一改为 true
+      silent: true,
       ...opts,
     })
   },
 
   // 5. 删除
   remove: async (slug: string): Promise<ProjectResponse> => {
-    return request<ProjectResponse>(`/api/projects/${slug}`, { method: 'DELETE' })
+    return request<ProjectResponse>(`/api/projects/${slug}`, { method: 'DELETE', silent: true })
   },
 }
