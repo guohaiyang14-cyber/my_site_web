@@ -9,3 +9,8 @@
 - Vue 3 (Composition API) + Vite
 - Vue Router / TypeScript
 - 自定义封装的高效 Fetch API 客户端 (支持 JWT 拦截、全局错误处理)
+
+## 🚀 本地启动指南
+
+    pnpm install
+    pnpm dev
