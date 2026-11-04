@@ -92,8 +92,7 @@ function scrollToPortfolio() {
         </p>
 
         <div class="hero-actions">
-          <el-button type="primary" size="large" @click="router.push('/new')">开始创作</el-button>
-          <el-button plain size="large" @click="scrollToPortfolio()">查看作品</el-button>
+          <el-button type="primary" size="large" @click="scrollToPortfolio()">查看作品</el-button>
         </div>
 
         <div class="hero-stats">
