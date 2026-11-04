@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ToastHost from './components/ToastHost.vue'
+import ParticleBackground from './components/ParticleBackground.vue'
 
 const router = useRouter()
 
@@ -19,7 +20,13 @@ onUnmounted(() => {
   window.removeEventListener('auth:unauthorized', handleUnauthorized)
 })
 </script>
+
 <template>
-  <RouterView />
-  <ToastHost />
+  <div class="app-shell">
+    <ParticleBackground />
+    <div class="app-content">
+      <RouterView />
+      <ToastHost />
+    </div>
+  </div>
 </template>
