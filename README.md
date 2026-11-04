@@ -1,5 +1,11 @@
-# Vue 3 + Vite
+# 🚀 Personal Portfolio & Lightweight API (个人作品集与轻量 API)
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+一个基于现代 Web 技术栈构建的全栈个人作品集，包含前端展示页面与带鉴权、分页、数据落库的后端 API。
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+🔗 **在线演示**: [https://guohy.online](https://guohy.online)
+
+## 🛠️ 技术栈
+
+- Vue 3 (Composition API) + Vite
+- Vue Router / TypeScript
+- 自定义封装的高效 Fetch API 客户端 (支持 JWT 拦截、全局错误处理)
