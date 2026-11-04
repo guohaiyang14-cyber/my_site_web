@@ -1,6 +1,6 @@
 import { toast, type ToastType } from '../composables/useToast'
 
-const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:7777'
+const BASE = import.meta.env.VITE_API_BASE || ''
 
 type ApiErrorDetails = string[]
 
