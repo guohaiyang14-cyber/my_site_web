@@ -2,8 +2,10 @@
 import { computed, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import { useAsync } from '../composables/useAsync'
+import { aiApi } from '../api/ai'
 import { projectsApi, type ProjectCreatePayload } from '../api/projects'
+import { toast } from '../composables/useToast'
+import { useAsync } from '../composables/useAsync'
 import ErrorState from '../components/ErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 
@@ -12,6 +14,7 @@ const router = useRouter()
 const slug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug : ''))
 const isEdit = computed(() => !!slug.value)
 const formRef = ref<FormInstance>()
+const aiLoading = ref(false)
 
 const emptyForm: ProjectCreatePayload = {
   slug: '',
@@ -102,6 +105,32 @@ async function onSubmit() {
     router.push('/')
   }
 }
+
+async function handleAIGenerate() {
+  if (!form.value.title) {
+    toast('请先填写标题', 'warning')
+    return
+  }
+
+  form.value.techStack = techStackInput.value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+
+  aiLoading.value = true
+  try {
+    const res = await aiApi.generateInfo({
+      title: form.value.title,
+      techStack: form.value.techStack,
+    })
+    form.value.summary = res.data.summary
+  } catch (error) {
+    console.error('AI summary generation failed:', error)
+    toast('AI 暂时开小差了，请自己写一段简介吧~', 'warning')
+  } finally {
+    aiLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -160,6 +189,9 @@ async function onSubmit() {
           </div>
 
           <div class="submit-row">
+            <el-button type="button" @click="handleAIGenerate" :disabled="aiLoading">
+              {{ aiLoading ? '✨ 生成中...' : '✨ AI 代写' }}
+            </el-button>
             <el-button @click="router.push('/')">取消</el-button>
             <el-button type="primary" native-type="submit" :loading="submitting">
               {{ submitting ? '提交中...' : '保存' }}

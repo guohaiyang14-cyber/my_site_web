@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { request } from '../api/client'
+import { authApi } from '../api/auth'
 import ErrorState from '../components/ErrorState.vue'
 import { toast } from '../composables/useToast'
 
@@ -27,14 +27,10 @@ async function handleRegister() {
   error.value = null
 
   try {
-    await request('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: name.value,
-        email: email.value,
-        password: password.value,
-      }),
-      silent: true,
+    await authApi.register({
+      name: name.value,
+      email: email.value,
+      password: password.value,
     })
 
     toast('注册成功，请登录', 'success')

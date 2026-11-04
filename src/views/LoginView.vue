@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { request } from '../api/client.ts'
+import { authApi } from '../api/auth'
 import ErrorState from '../components/ErrorState.vue'
 
 const router = useRouter()
@@ -15,11 +15,7 @@ async function handleLogin() {
   error.value = null
 
   try {
-    const res = await request<{ data: { token: string; user: any } }>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.value, password: password.value }),
-      silent: true,
-    })
+    const res = await authApi.login({ email: email.value, password: password.value })
 
     localStorage.setItem('auth_token', res.data.token)
     localStorage.setItem('auth_user', JSON.stringify(res.data.user))
