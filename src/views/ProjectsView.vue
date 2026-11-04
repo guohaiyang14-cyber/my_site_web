@@ -111,7 +111,7 @@ function handleLoginOut() {
               >
             </div>
 
-            <div class="project-actions">
+            <div class="project-actions" v-if="hasToken">
               <el-button size="small" type="primary" plain @click="router.push(`/edit/${p.slug}`)">
                 编辑
               </el-button>
